@@ -4,57 +4,48 @@
 
 ## Dockerfile
 ```
-## En se basanet sur CentOS 7
 FROM centos:7
-## Les proxy set
 ENV https_proxy=http://10.127.163.100:8888
 ENV http_proxy=http://10.127.163.100:8888
 ENV no_proxy="*.ad.testbd.dcn"
-## On copy les repo autorisés par le proxy
 COPY CentOS.repo /etc/yum.repos.d/CentOS-Base.repo
-## On install de quoi debbuger
 RUN yum update -y \
-  && yum install -y vim nc wget
-## On récupère grafana puis un plugin et on le place dans l'endroit souhaitez
-RUN wget https://dl.grafana.com/oss/release/grafana-7.2.0.linux-amd64.tar.gz \
- && tar xzvf grafana-7.2.0.linux-amd64.tar.gz \
- && mv grafana-7.2.0 /opt/ \
- && opt/grafana-7.2.0/bin/grafana-cli plugins install grafana-piechart-panel \
- && cp -R /var/lib/grafana/ /opt/grafana-7.2.0/data/
-
-ENTRYPOINT /opt/grafana-7.2.0/bin/grafana-server -config /opt/grafana-7.2.0/conf/defaults.ini  -homepath /opt/grafana-7.2.0/```
+  && yum install -y vim nc wget unzip
+RUN wget https://dl.grafana.com/oss/release/grafana-8.1.2.linux-amd64.tar.gz \
+ && tar xzvf grafana-8.1.2.linux-amd64.tar.gz \
+ && mv grafana-8.1.2 /opt/
+COPY grafana-piechart-panel-1.6.2.zip /opt/grafana-8.1.2/data/plugins/
+RUN cd /opt/grafana-8.1.2/data/plugins/ \
+ && unzip grafana-piechart-panel-1.6.2.zip
+# && opt/grafana-8.1.2/bin/grafana-cli plugins install grafana-piechart-panel \
+# && cp -R /var/lib/grafana/ /opt/grafana-8.1.2/data/
 ```
 
 ## Construire le container
 
 ```
-Sending build context to Docker daemon  165.4kB
-Step 1/8 : FROM centos:7
- ---> 7e6257c9f8d8
-Step 2/8 : ENV https_proxy=http://10.127.163.100:8888
+Step 1/7 : FROM centos:7
+ ---> 8652b9f0cb4c
+Step 2/7 : COPY CentOS.repo /etc/yum.repos.d/CentOS-Base.repo
  ---> Using cache
- ---> 2c2df8492553
-Step 3/8 : ENV http_proxy=http://10.127.163.100:8888
+ ---> eba47dedad3a
+Step 3/7 : RUN yum update -y   && yum install -y vim nc wget unzip
  ---> Using cache
- ---> dc23574e3b29
-Step 4/8 : ENV no_proxy="*.ad.testbd.dcn"
+ ---> 94cbc4736ec8
+Step 4/7 : RUN wget https://dl.grafana.com/oss/release/grafana-8.1.2.linux-amd64.tar.gz  && tar xzvf grafana-8.1.2.linux-amd64.tar.gz  && mv grafana-8.1.2 /opt/
  ---> Using cache
- ---> 92018393abd8
-Step 5/8 : COPY CentOS.repo /etc/yum.repos.d/CentOS-Base.repo
+ ---> 08c84f2e8235
+Step 5/7 : COPY grafana-piechart-panel-1.6.2.zip /opt/grafana-8.1.2/data/plugins/
  ---> Using cache
- ---> 133d3de08d53
-Step 6/8 : RUN yum update -y   && yum install -y vim nc wget
+ ---> 837324f7a4b2
+Step 6/7 : RUN cd /opt/grafana-8.1.2/data/plugins/  && unzip grafana-piechart-panel-1.6.2.zip
  ---> Using cache
- ---> 537b9531828f
-Step 7/8 : RUN wget https://dl.grafana.com/oss/release/grafana-7.2.0.linux-amd64.tar.gz  && tar xzvf grafana-7.2.0.linux-amd64.tar.gz  && mv grafana-7.2.0 /opt/  && opt/grafana-7.2.0/bin/grafana-cli plugins install grafana-piechart-panel  && cp -R /var/lib/grafana/ /opt/grafana-7.2.0/data/
+ ---> 0a6d1ee3a437
+Step 7/7 : ENTRYPOINT unset http_proxy; unset https_proxy; /opt/grafana-8.1.2/bin/grafana-server -config /opt/grafana-8.1.2/conf/defaults.ini  -homepath /opt/grafana-8.1.2/
  ---> Using cache
- ---> 78407a1c0fd6
-Step 8/8 : ENTRYPOINT unset http_proxy; unset https_proxy; /opt/grafana-7.2.0/bin/grafana-server -config /opt/grafana-7.2.0/conf/defaults.ini  -homepath /opt/grafana-7.2.0/
- ---> Running in e515294f14df
-Removing intermediate container e515294f14df
- ---> aeec8f39cca1
-Successfully built aeec8f39cca1
-Successfully tagged grafana:latest
+ ---> 34f741d60596
+Successfully built 34f741d60596
+Successfully tagged grafana:8.1.2
 ```
 
 ## Demarrer le container
